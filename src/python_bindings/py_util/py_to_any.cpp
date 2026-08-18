@@ -15,6 +15,7 @@
 
 #include "core/algorithms/algebraic_constraints/bin_operation_enum.h"
 #include "core/algorithms/cfd/enums.h"
+#include "core/algorithms/cfd/model/raw_cfd.h"
 #include "core/algorithms/cind/types.h"
 #include "core/algorithms/dd/dd.h"
 #include "core/algorithms/dd/dd_verifier/Metric.h"
@@ -266,6 +267,7 @@ std::unordered_map<std::type_index, ConvFunc> const kConverters{
         kNormalConvPair<std::pair<std::string, std::string>>,
         kNormalConvPair<std::vector<std::string>>,
         kNormalConvPair<std::unordered_map<std::string, std::vector<unsigned int>>>,
+        kNormalConvPair<algos::cfd::RawCFD>,
         kNormalConvPair<std::shared_ptr<pac::model::IDomain>>,
         {typeid(config::CustomMetricType), CustomMetricToAny},
         {typeid(config::CustomMetricsType), CustomMetricsToAny},
