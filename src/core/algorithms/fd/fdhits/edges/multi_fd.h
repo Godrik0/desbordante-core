@@ -1,6 +1,7 @@
 #pragma once
 
 #include <algorithm>
+#include <cassert>
 #include <cstddef>
 #include <string>
 #include <vector>
@@ -16,9 +17,11 @@ private:
     DefaultEdge rhs_;
 
 public:
-    MultiFD(size_t num_columns)
+    explicit MultiFD(size_t num_columns)
         : lhs_(DefaultEdge::EmptyEdge(num_columns / 2)),
-          rhs_(DefaultEdge::EmptyEdge(num_columns / 2)) {}
+          rhs_(DefaultEdge::EmptyEdge(num_columns / 2)) {
+        assert(num_columns % 2 == 0);
+    }
 
     MultiFD(DefaultEdge lhs, DefaultEdge rhs) : lhs_(std::move(lhs)), rhs_(std::move(rhs)) {}
 
@@ -27,6 +30,7 @@ public:
     }
 
     static MultiFD Filled(size_t num_columns) {
+        assert(num_columns % 2 == 0);
         return MultiFD(DefaultEdge::Filled(num_columns / 2), DefaultEdge::Filled(num_columns / 2));
     }
 
@@ -164,15 +168,12 @@ public:
         return rhs_.Count();
     }
 
-    bool operator==(MultiFD const& other) const {
-        return lhs_ == other.lhs_ && rhs_ == other.rhs_;
-    }
-
-    bool operator!=(MultiFD const& other) const {
-        return !(*this == other);
-    }
+    bool operator==(MultiFD const& other) const = default;
 
     bool operator<(MultiFD const& other) const {
+        size_t const count = Count();
+        size_t const other_count = other.Count();
+        if (count != other_count) return count < other_count;
         if (lhs_ != other.lhs_) return lhs_ < other.lhs_;
         return rhs_ < other.rhs_;
     }
