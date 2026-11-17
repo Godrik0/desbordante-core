@@ -36,7 +36,7 @@ static void SearchRecursive(edges::DefaultEdge* s, DynamicEdgemarkStore* store,
 
     store->GetCurrentCandMut().RemoveAll(c);
 
-    for (size_t node : c.GetNodes()) {
+    for (size_t node : c.Nodes()) {
         if (store->Add(node)) {
             s->Add(node);
 
@@ -53,7 +53,7 @@ static void SearchRecursive(edges::DefaultEdge* s, DynamicEdgemarkStore* store,
 void SearchDE(Hypergraph<edges::DefaultEdge>* graph, Validator<edges::DefaultEdge>* target) {
     DynamicEdgemarkStore store(graph);
 
-    edges::DefaultEdge s = edges::DefaultEdge::Empty(graph->GetVertexCount());
+    edges::DefaultEdge s = edges::DefaultEdge::EmptyEdge(graph->GetVertexCount());
 
     SearchRecursive(&s, &store, target);
 }

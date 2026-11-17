@@ -47,7 +47,7 @@ static void SearchRecursiveFD(edges::MultiFD* s, DynamicEdgemarkStoreMulti* stor
 
     store->GetCurrentCandMut().RemoveAll(c);
 
-    for (size_t lhs_node : c.GetLhs().GetNodes()) {
+    for (size_t lhs_node : c.GetLhs().Nodes()) {
         if (store->AddLhs(lhs_node)) {
             s->AddLhs(lhs_node);
 
@@ -62,7 +62,7 @@ static void SearchRecursiveFD(edges::MultiFD* s, DynamicEdgemarkStoreMulti* stor
 void SearchMulti(Hypergraph<edges::MultiFD>* graph, Validator<edges::MultiFD>* target) {
     DynamicEdgemarkStoreMulti store(graph);
 
-    edges::MultiFD s = edges::MultiFD::Empty(graph->GetVertexCount());
+    edges::MultiFD s = edges::MultiFD::EmptyEdge(graph->GetVertexCount());
 
     SearchRecursiveFD(&s, &store, target);
 }

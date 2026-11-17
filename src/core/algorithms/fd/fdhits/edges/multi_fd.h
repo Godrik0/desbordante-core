@@ -16,11 +16,13 @@ private:
     DefaultEdge rhs_;
 
 public:
-    MultiFD(size_t num_columns) : lhs_(num_columns / 2), rhs_(num_columns / 2) {}
+    MultiFD(size_t num_columns)
+        : lhs_(DefaultEdge::EmptyEdge(num_columns / 2)),
+          rhs_(DefaultEdge::EmptyEdge(num_columns / 2)) {}
 
     MultiFD(DefaultEdge lhs, DefaultEdge rhs) : lhs_(std::move(lhs)), rhs_(std::move(rhs)) {}
 
-    static MultiFD Empty(size_t num_columns) {
+    static MultiFD EmptyEdge(size_t num_columns) {
         return MultiFD(num_columns);
     }
 
@@ -69,8 +71,8 @@ public:
         return lhs_.Overlap(other.lhs_) + rhs_.Overlap(other.rhs_);
     }
 
-    bool Covers(MultiFD const& other) const {
-        return lhs_.Covers(other.lhs_) || rhs_.Implies(other.rhs_);
+    bool Hits(MultiFD const& other) const {
+        return lhs_.Hits(other.lhs_) || rhs_.Implies(other.rhs_);
     }
 
     bool Implies(MultiFD const& other) const {
@@ -97,31 +99,26 @@ public:
     }
 
     void RemoveAllInvalid(MultiFD const& other) {
-        for (size_t rhs_node : other.rhs_.GetNodes()) {
+        for (size_t rhs_node : other.rhs_.Nodes()) {
             lhs_.Remove(rhs_node);
         }
         if (other.rhs_.Count() > 0) {
             rhs_.Clear();
         } else {
-            for (size_t lhs_node : other.lhs_.GetNodes()) {
+            for (size_t lhs_node : other.lhs_.Nodes()) {
                 rhs_.Remove(lhs_node);
             }
         }
     }
 
-    void SetTo(MultiFD const& other) {
-        lhs_.SetTo(other.lhs_);
-        rhs_.SetTo(other.rhs_);
-    }
-
     std::vector<size_t> GetNodes() const {
         std::vector<size_t> nodes;
         nodes.reserve(Count());
-        for (size_t node : lhs_.GetNodes()) {
+        for (size_t node : lhs_.Nodes()) {
             nodes.push_back(node);
         }
         size_t offset = lhs_.Size();
-        for (size_t node : rhs_.GetNodes()) {
+        for (size_t node : rhs_.Nodes()) {
             nodes.push_back(node + offset);
         }
         return nodes;
@@ -156,7 +153,7 @@ public:
     }
 
     void SetRhs(DefaultEdge const& rhs) {
-        rhs_.SetTo(rhs);
+        rhs_ = rhs;
     }
 
     void IntersectRhs(DefaultEdge const& other) {

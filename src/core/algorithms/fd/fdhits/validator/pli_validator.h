@@ -45,7 +45,7 @@ public:
         }
 
         bool is_valid = std::all_of(set.GetEdgeSet().begin(), set.GetEdgeSet().end(),
-                                    [&s](E const& e) { return s.Covers(e); });
+                                    [&s](E const& e) { return s.Hits(e); });
 
         if (is_valid) {
             if (problem_->IsValidResult(s)) {

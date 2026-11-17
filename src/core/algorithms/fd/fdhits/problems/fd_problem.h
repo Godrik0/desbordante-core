@@ -17,7 +17,7 @@ public:
 
     template <typename C>
     void GetEdge(RowIndex r1, RowIndex r2, C* consumer) const {
-        EdgeType edge = EdgeType::Empty(table_->GetColumnCount());
+        EdgeType edge = EdgeType::EmptyEdge(table_->GetColumnCount());
         for (size_t col = 0; col < table_->GetColumnCount(); ++col) {
             if (table_->IsDifferentOnColumn(r1, r2, col)) {
                 edge.Add(col);

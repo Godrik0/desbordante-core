@@ -129,7 +129,7 @@ unsigned long long FDHits::ExecuteInternal() {
 
         for (auto const& fd : results_collector.results) {
             auto lhs_nodes = fd.GetLhs().GetNodes();
-            auto rhs_nodes = fd.GetRhs().GetNodes();
+            auto rhs_nodes = fd.GetRhs().Nodes();
             for (size_t rhs : rhs_nodes) {
                 raw_fds.emplace_back(lhs_nodes, rhs);
             }

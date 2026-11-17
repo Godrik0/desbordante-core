@@ -53,23 +53,20 @@ bool DynamicEdgemarkStoreMulti::CanAddRhs(size_t vertex) const {
 
 edges::MultiFD& DynamicEdgemarkStoreMulti::CopyLastCand() {
     size_t const pos = nodes_.size();
-    cand_[pos + 1].SetTo(cand_[pos]);
+    cand_[pos + 1] = cand_[pos];
     return cand_[pos + 1];
 }
 
 void DynamicEdgemarkStoreMulti::CalcRhsHitting() {
     auto const& current_rhs = cand_[nodes_.size()].GetRhs();
-    auto rhs_nodes = current_rhs.GetNodes();
-
-    if (rhs_nodes.empty()) {
+    if (current_rhs.IsEmpty()) {
         return;
     }
 
-    current_vertex_hitting_.SetToNot(vertex_hittings_[rhs_nodes[0]]);
-
-    for (size_t i = 1; i < rhs_nodes.size(); ++i) {
-        size_t col = rhs_nodes[i];
-        current_vertex_hitting_.IntersectWithInverse(vertex_hittings_[col]);
+    auto node = current_rhs.NodesBegin();
+    current_vertex_hitting_.SetToNot(vertex_hittings_[*node]);
+    for (++node; node != current_rhs.NodesEnd(); ++node) {
+        current_vertex_hitting_.IntersectWithInverse(vertex_hittings_[*node]);
     }
 }
 
@@ -85,7 +82,7 @@ void DynamicEdgemarkStoreMulti::CheckCriticalityForActiveRhs() {
 
 void DynamicEdgemarkStoreMulti::RemoveLhsForSingularRhs() {
     if (GetCurrentCand().RhsCount() == 1) {
-        size_t rhs = GetCurrentCand().GetRhsNodes()[0];
+        size_t rhs = GetCurrentCand().GetRhs().FirstNode();
         GetCurrentCandMut().RemoveLhs(rhs);
     }
 }
@@ -164,7 +161,7 @@ void DynamicEdgemarkStoreMulti::Pop() {
 void DynamicEdgemarkStoreMulti::UpdateVertexHittings(size_t offset) {
     for (size_t idx = offset; idx < graph_->GetEdgeCount(); ++idx) {
         auto const& edge = graph_->GetEdge(idx);
-        for (size_t v : edge.GetLhs().GetNodes()) {
+        for (size_t v : edge.GetLhs().Nodes()) {
             vertex_hittings_[v].Set(idx);
         }
     }
@@ -200,7 +197,7 @@ void DynamicEdgemarkStoreMulti::Extend(edges::MultiFD const& s,
     for (size_t idx = previous_size; idx < graph_->GetEdgeCount(); ++idx) {
         auto const& edge = graph_->GetEdge(idx);
 
-        if (!s.Covers(edge)) {
+        if (!s.Hits(edge)) {
             uncov_.Set(idx);
         } else {
             std::optional<size_t> first;

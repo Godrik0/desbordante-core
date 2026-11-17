@@ -32,7 +32,7 @@ DynamicEdgemarkStore::DynamicEdgemarkStore(Hypergraph<EdgeType>* graph)
 void DynamicEdgemarkStore::UpdateVertexHittings(size_t offset) {
     size_t idx = offset;
     for (auto it = graph_->begin() + offset; it != graph_->end(); ++it, ++idx) {
-        for (size_t v : it->GetNodes()) {
+        for (size_t v : it->Nodes()) {
             assert(v < vertex_hittings_.size());
             vertex_hittings_[v].Set(idx);
         }
@@ -124,7 +124,7 @@ void DynamicEdgemarkStore::Extend(EdgeType const& s, Hypergraph<EdgeType>&& new_
 
     size_t idx = previous_size;
     for (auto it = graph_->begin() + previous_size; it != graph_->end(); ++it, ++idx) {
-        if (!s.Covers(*it)) {
+        if (!s.Hits(*it)) {
             uncov_.Set(idx);
         } else {
             std::optional<size_t> first;

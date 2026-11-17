@@ -1,6 +1,8 @@
 #pragma once
 
 #include <cstddef>
+#include <iterator>
+#include <ranges>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -15,12 +17,12 @@ private:
 
     explicit DefaultEdge(boost::dynamic_bitset<> bits) : bits_(std::move(bits)) {}
 
+    explicit DefaultEdge(size_t size) : bits_(size) {}
+
 public:
     static constexpr auto kNpos = boost::dynamic_bitset<>::npos;
 
-    explicit DefaultEdge(size_t size) : bits_(size) {}
-
-    static DefaultEdge Empty(size_t size) {
+    static DefaultEdge EmptyEdge(size_t size) {
         return DefaultEdge(size);
     }
 
@@ -54,11 +56,7 @@ public:
         return bits_.none();
     }
 
-    size_t Overlap(DefaultEdge const& other) const {
-        return (bits_ & other.bits_).count();
-    }
-
-    bool Covers(DefaultEdge const& other) const {
+    bool Hits(DefaultEdge const& other) const {
         return bits_.intersects(other.bits_);
     }
 
@@ -89,10 +87,6 @@ public:
         bits_ &= other.bits_;
     }
 
-    void SetTo(DefaultEdge const& other) {
-        bits_ = other.bits_;
-    }
-
     void Clear() {
         bits_.reset();
     }
@@ -112,8 +106,14 @@ public:
         size_t current_;
 
     public:
+        NodesIterator() : bits_(nullptr), current_(kNpos) {}
+
         NodesIterator(boost::dynamic_bitset<> const* bits, size_t pos)
             : bits_(bits), current_(pos) {}
+
+        using value_type = size_t;
+        using difference_type = std::ptrdiff_t;
+        using iterator_concept = std::forward_iterator_tag;
 
         size_t operator*() const {
             return current_;
@@ -124,10 +124,16 @@ public:
             return *this;
         }
 
-        bool operator!=(NodesIterator const& other) const {
-            return current_ != other.current_;
+        NodesIterator operator++(int) {
+            NodesIterator previous = *this;
+            ++(*this);
+            return previous;
         }
+
+        bool operator==(NodesIterator const& other) const = default;
     };
+
+    static_assert(std::forward_iterator<NodesIterator>);
 
     NodesIterator NodesBegin() const {
         return NodesIterator(&bits_, bits_.find_first());
@@ -137,35 +143,40 @@ public:
         return NodesIterator(&bits_, kNpos);
     }
 
+    auto Nodes() const {
+        return std::ranges::subrange(NodesBegin(), NodesEnd());
+    }
+
+    size_t FirstNode() const {
+        return bits_.find_first();
+    }
+
+    size_t Overlap(DefaultEdge const& other) const {
+        size_t count = 0;
+        for (size_t node : Nodes()) {
+            if (other.Contains(node)) ++count;
+        }
+        return count;
+    }
+
     std::string ToString() const {
         std::ostringstream oss;
         bool first = true;
-        for (size_t i = bits_.find_first(); i != kNpos; i = bits_.find_next(i)) {
+        for (size_t node : Nodes()) {
             if (!first) oss << ",";
-            oss << i;
+            oss << node;
             first = false;
         }
         return oss.str();
     }
 
-    bool operator==(DefaultEdge const& other) const {
-        return bits_ == other.bits_;
-    }
-
-    bool operator!=(DefaultEdge const& other) const {
-        return bits_ != other.bits_;
-    }
+    bool operator==(DefaultEdge const& other) const = default;
 
     bool operator<(DefaultEdge const& other) const {
-        if (bits_.size() != other.bits_.size()) {
-            return bits_.size() < other.bits_.size();
-        }
-        for (size_t i = 0; i < bits_.size(); ++i) {
-            if (bits_[i] != other.bits_[i]) {
-                return bits_[i] < other.bits_[i];
-            }
-        }
-        return false;
+        size_t const count = Count();
+        size_t const other_count = other.Count();
+        if (count != other_count) return count < other_count;
+        return bits_ < other.bits_;
     }
 
     boost::dynamic_bitset<>& GetBits() {
@@ -178,12 +189,7 @@ public:
 
     struct Hash {
         std::size_t operator()(DefaultEdge const& edge) const {
-            std::size_t hash = 0;
-            boost::hash_combine(hash, edge.bits_.count());
-            for (size_t i = edge.bits_.find_first(); i != kNpos; i = edge.bits_.find_next(i)) {
-                boost::hash_combine(hash, i);
-            }
-            return hash;
+            return boost::hash_value(edge.bits_);
         }
     };
 };

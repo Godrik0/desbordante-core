@@ -27,17 +27,17 @@ public:
                 for (size_t rhs_col = 0; rhs_col < num_columns; ++rhs_col) {
                     if (lhs_col == rhs_col) continue;
                     if (!table_->IsDifferentOnColumn(r1, r2, rhs_col)) {
-                        edges::DefaultEdge lhs = edges::DefaultEdge::Empty(num_columns);
+                        edges::DefaultEdge lhs = edges::DefaultEdge::EmptyEdge(num_columns);
                         lhs.Add(lhs_col);
-                        edges::DefaultEdge rhs = edges::DefaultEdge::Empty(num_columns);
+                        edges::DefaultEdge rhs = edges::DefaultEdge::EmptyEdge(num_columns);
                         rhs.Add(rhs_col);
                         consumer->Consume(EdgeType(std::move(lhs), std::move(rhs)));
                     }
                 }
             }
         } else {
-            edges::DefaultEdge lhs = edges::DefaultEdge::Empty(num_columns);
-            edges::DefaultEdge rhs = edges::DefaultEdge::Empty(num_columns);
+            edges::DefaultEdge lhs = edges::DefaultEdge::EmptyEdge(num_columns);
+            edges::DefaultEdge rhs = edges::DefaultEdge::EmptyEdge(num_columns);
 
             for (size_t col = 0; col < num_columns; ++col) {
                 if (table_->IsDifferentOnColumn(r1, r2, col)) {
@@ -58,7 +58,7 @@ public:
     }
 
     bool IsViolatingPair(RowIndex r1, RowIndex r2, EdgeType const& candidate) const {
-        for (size_t node : candidate.GetRhs().GetNodes()) {
+        for (size_t node : candidate.GetRhs().Nodes()) {
             if (table_->IsDifferentOnColumn(r1, r2, node)) return true;
         }
         return false;
