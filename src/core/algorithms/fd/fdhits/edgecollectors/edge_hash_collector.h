@@ -1,12 +1,13 @@
 #pragma once
 
 #include <algorithm>
+#include <cstddef>
+#include <ranges>
+#include <utility>
 #include <vector>
 
 #include <boost/unordered_set.hpp>
 
-#include "core/algorithms/fd/fdhits/edges/default_edge.h"
-#include "core/algorithms/fd/fdhits/edges/multi_fd.h"
 #include "core/algorithms/fd/fdhits/treesearch/hypergraph.h"
 
 namespace algos::fd::fdhits {
@@ -21,29 +22,35 @@ public:
         edges_.insert(edge);
     }
 
-    auto const& GetEdgeSet() const {
-        return edges_;
+    void Consume(E&& edge) {
+        edges_.insert(std::move(edge));
+    }
+
+    auto Edges() const {
+        return std::ranges::subrange(edges_.begin(), edges_.end());
     }
 
     bool IsEmpty() const {
         return edges_.empty();
     }
 
-    Hypergraph<E> ToGraph(E const& s) {
-        Hypergraph<E> graph(s.Size());
+    Hypergraph<E> ToGraph(size_t vertex_count) {
+        Hypergraph<E> graph(vertex_count);
 
         std::vector<E> sorted_edges;
         sorted_edges.reserve(edges_.size());
-        for (auto const& edge : edges_) {
-            sorted_edges.push_back(edge);
+        while (!edges_.empty()) {
+            sorted_edges.push_back(
+                std::move(edges_.extract(edges_.begin()).value())
+            );
         }
         edges_.clear();
 
-        std::sort(sorted_edges.begin(), sorted_edges.end());
+        std::ranges::sort(sorted_edges, [](E const& a, E const& b) { return a < b; });
 
-        for (auto const& edge : sorted_edges) {
+        for (auto& edge : sorted_edges) {
             if (!graph.Implies(edge)) {
-                graph.AddEdge(edge);
+                graph.AddEdge(std::move(edge));
             }
         }
         return graph;

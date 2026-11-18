@@ -96,7 +96,7 @@ unsigned long long FDHits::ExecuteInternal() {
             }
 
             Hypergraph<EdgeType> input =
-                    collector.ToGraph(EdgeType::Filled(pli_table.GetColumnCount()));
+                    collector.ToGraph(pli_table.GetColumnCount());
 
             TargetFDCollector consumer{target, &raw_fds};
 
@@ -118,7 +118,7 @@ unsigned long long FDHits::ExecuteInternal() {
         }
 
         Hypergraph<EdgeType> input =
-                collector.ToGraph(EdgeType::Filled(pli_table.GetColumnCount() * 2));
+                collector.ToGraph(pli_table.GetColumnCount() * 2);
 
         VecEdgeCollector<EdgeType> results_collector;
 

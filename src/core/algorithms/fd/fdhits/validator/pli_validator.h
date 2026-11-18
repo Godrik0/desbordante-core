@@ -44,18 +44,18 @@ public:
             }
         }
 
-        bool is_valid = std::all_of(set.GetEdgeSet().begin(), set.GetEdgeSet().end(),
-                                    [&s](E const& e) { return s.Hits(e); });
+        bool is_valid = std::ranges::all_of(set.Edges(),
+                                           [&s](E const& e) { return s.Hits(e); });
 
         if (is_valid) {
             if (problem_->IsValidResult(s)) {
                 consumer_->Consume(s);
             }
-            return {false, set.ToGraph(s)};
+            return {false, set.ToGraph(s.Size())};
         }
 
         sampling_->SamplePLI(pli, &set);
-        return {true, set.ToGraph(s)};
+        return {true, set.ToGraph(s.Size())};
     }
 
     void Push(std::vector<NodeType> const& columns) override {
