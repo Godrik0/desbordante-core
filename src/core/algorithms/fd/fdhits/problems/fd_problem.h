@@ -1,5 +1,7 @@
 #pragma once
 
+#include <utility>
+
 #include "core/algorithms/fd/fdhits/edges/default_edge.h"
 #include "core/algorithms/fd/fdhits/pli_table.h"
 #include "core/algorithms/fd/fdhits/types.h"
@@ -16,16 +18,17 @@ public:
     FDProblem(size_t column_id, PLITable const* table) : column_id_(column_id), table_(table) {}
 
     template <typename C>
-    void GetEdge(RowIndex r1, RowIndex r2, C* consumer) const {
-        EdgeType edge = EdgeType::EmptyEdge(table_->GetColumnCount());
-        for (size_t col = 0; col < table_->GetColumnCount(); ++col) {
+    void GetEdge(RowIndex r1, RowIndex r2, C& consumer) const {
+        if (!table_->IsDifferentOnColumn(r1, r2, column_id_)) return;
+
+        size_t const num_columns = table_->GetColumnCount();
+        EdgeType edge = EdgeType::EmptyEdge(num_columns);
+        for (size_t col = 0; col < num_columns; ++col) {
             if (table_->IsDifferentOnColumn(r1, r2, col)) {
                 edge.Add(col);
             }
         }
-        if (edge.Contains(column_id_)) {
-            consumer->Consume(edge);
-        }
+        consumer.Consume(std::move(edge));
     }
 
     bool IsValidResult(EdgeType const& result) const {

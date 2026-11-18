@@ -11,19 +11,19 @@ class SamplingStrategyFilter : public ClusterFilter {
 private:
     E const* candidate_;
     S const* sampling_;
-    F* filter_;
+    F& filter_;
 
 public:
-    SamplingStrategyFilter(E const* candidate, S const* sampling, F* filter)
+    SamplingStrategyFilter(E const* candidate, S const* sampling, F& filter)
         : candidate_(candidate), sampling_(sampling), filter_(filter) {}
 
     bool Keep(Cluster const& cluster) const override {
         return sampling_->GetViolatingPair(cluster, *candidate_).has_value() &&
-               filter_->Keep(cluster);
+               filter_.Keep(cluster);
     }
 
     void SetRequestedLevel(bool active) override {
-        filter_->SetRequestedLevel(active);
+        filter_.SetRequestedLevel(active);
     }
 };
 
@@ -31,13 +31,13 @@ template <typename E, typename S, typename C>
 class SmallClusterCollector : public ClusterFilter {
 private:
     S const* sampling_;
-    C* consumer_;
+    C& consumer_;
     uint64_t limit_;
     bool requested_level_;
     bool require_requested_level_;
 
 public:
-    SmallClusterCollector(S const* sampling, C* consumer, uint64_t limit,
+    SmallClusterCollector(S const* sampling, C& consumer, uint64_t limit,
                           bool require_requested_level)
         : sampling_(sampling),
           consumer_(consumer),

@@ -18,7 +18,7 @@ public:
         : table_(table), separate_edges_(separate_edges) {}
 
     template <typename C>
-    void GetEdge(RowIndex r1, RowIndex r2, C* consumer) const {
+    void GetEdge(RowIndex r1, RowIndex r2, C& consumer) const {
         size_t const num_columns = table_->GetColumnCount();
 
         if (separate_edges_) {
@@ -31,7 +31,7 @@ public:
                         lhs.Add(lhs_col);
                         edges::DefaultEdge rhs = edges::DefaultEdge::EmptyEdge(num_columns);
                         rhs.Add(rhs_col);
-                        consumer->Consume(EdgeType(std::move(lhs), std::move(rhs)));
+                        consumer.Consume(EdgeType(std::move(lhs), std::move(rhs)));
                     }
                 }
             }
@@ -48,7 +48,7 @@ public:
             }
 
             if (lhs.Count() > 0) {
-                consumer->Consume(EdgeType(std::move(lhs), std::move(rhs)));
+                consumer.Consume(EdgeType(std::move(lhs), std::move(rhs)));
             }
         }
     }

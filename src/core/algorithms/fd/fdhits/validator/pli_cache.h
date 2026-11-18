@@ -18,7 +18,7 @@ private:
     S const* sampling_;
 
     void PullUpIntersections(std::vector<NodeType> const& columns, std::vector<E> const& cand,
-                             ClusterFilter* filter);
+                             ClusterFilter& filter);
 
 public:
     PLICache(PLITable const* table, S const* sampling)
@@ -26,7 +26,7 @@ public:
         intersections_.resize(table->GetColumnCount() * 2);
     }
 
-    Pli const& GetPLI(std::vector<NodeType> const& columns, ClusterFilter* filter,
+    Pli const& GetPLI(std::vector<NodeType> const& columns, ClusterFilter& filter,
                       std::vector<E> const& cand);
 
     void Truncate(size_t current) {
@@ -35,7 +35,7 @@ public:
 };
 
 template <typename E, typename S>
-Pli const& PLICache<E, S>::GetPLI(std::vector<NodeType> const& columns, ClusterFilter* filter,
+Pli const& PLICache<E, S>::GetPLI(std::vector<NodeType> const& columns, ClusterFilter& filter,
                                   std::vector<E> const& cand) {
     if (columns.empty()) return table_->GetFullPli();
 
@@ -52,7 +52,7 @@ Pli const& PLICache<E, S>::GetPLI(std::vector<NodeType> const& columns, ClusterF
 
 template <typename E, typename S>
 void PLICache<E, S>::PullUpIntersections(std::vector<NodeType> const& columns,
-                                         std::vector<E> const& cand, ClusterFilter* filter) {
+                                         std::vector<E> const& cand, ClusterFilter& filter) {
     for (size_t i = cached_; i < columns.size(); ++i) {
         cached_++;
         if (cached_ <= 1) continue;

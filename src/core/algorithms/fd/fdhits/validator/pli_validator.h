@@ -18,13 +18,13 @@ namespace algos::fd::fdhits {
 template <typename E, typename Consumer, typename Sampling, typename Problem>
 class PLIValidator : public Validator<E> {
 private:
-    Consumer* consumer_;
+    Consumer& consumer_;
     Sampling const* sampling_;
     Problem const* problem_;
     PLICache<E, Sampling> cache_;
 
 public:
-    PLIValidator(PLITable const* table, Consumer* consumer, Problem const* problem,
+    PLIValidator(PLITable const* table, Consumer& consumer, Problem const* problem,
                  Sampling const* sampling)
         : consumer_(consumer), sampling_(sampling), problem_(problem), cache_(table, sampling) {}
 
@@ -32,14 +32,14 @@ public:
                                                         std::vector<NodeType> const& columns,
                                                         std::vector<E> const& cand) override {
         EdgeHashCollector<E> set;
-        SmallClusterCollector<E, Sampling, EdgeHashCollector<E>> filter(sampling_, &set, 100, true);
+        SmallClusterCollector<E, Sampling, EdgeHashCollector<E>> filter(sampling_, set, 100, true);
 
-        auto const& pli = cache_.GetPLI(columns, &filter, cand);
+        auto const& pli = cache_.GetPLI(columns, filter, cand);
 
         for (auto const& cluster : pli) {
             if (auto pair = sampling_->GetViolatingPair(cluster, s)) {
                 auto [p1, p2] = pair.value();
-                problem_->GetEdge(p1, p2, &set);
+                problem_->GetEdge(p1, p2, set);
                 break;
             }
         }
@@ -49,12 +49,12 @@ public:
 
         if (is_valid) {
             if (problem_->IsValidResult(s)) {
-                consumer_->Consume(s);
+                consumer_.Consume(s);
             }
             return {false, set.ToGraph(s.Size())};
         }
 
-        sampling_->SamplePLI(pli, &set);
+        sampling_->SamplePLI(pli, set);
         return {true, set.ToGraph(s.Size())};
     }
 

@@ -32,7 +32,7 @@ public:
           rng_(std::random_device{}()) {}
 
     template <typename C>
-    void SamplePLI(Pli const& pli, C* consumer) const {
+    void SamplePLI(Pli const& pli, C& consumer) const {
         if (pli.empty()) return;
 
         std::vector<uint64_t> weights;
@@ -106,7 +106,7 @@ public:
     }
 
     template <typename C>
-    void GetCrossProduct(Cluster const& cluster, C* consumer) const {
+    void GetCrossProduct(Cluster const& cluster, C& consumer) const {
         for (size_t i = 0; i < cluster.size(); ++i) {
             for (size_t j = i + 1; j < cluster.size(); ++j) {
                 problem_->GetEdge(cluster[i], cluster[j], consumer);

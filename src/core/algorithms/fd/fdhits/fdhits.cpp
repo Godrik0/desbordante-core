@@ -91,7 +91,7 @@ unsigned long long FDHits::ExecuteInternal() {
             EdgeHashCollector<EdgeType> collector;
             for (size_t c = 0; c < pli_table.GetColumnCount(); ++c) {
                 if (c != target) {
-                    sampling.SamplePLI(pli_table.GetColumnPli(c), &collector);
+                    sampling.SamplePLI(pli_table.GetColumnPli(c), collector);
                 }
             }
 
@@ -101,7 +101,7 @@ unsigned long long FDHits::ExecuteInternal() {
             TargetFDCollector consumer{target, &raw_fds};
 
             PLIValidator<EdgeType, TargetFDCollector, Sampler<Problem>, Problem> validator(
-                    &pli_table, &consumer, &problem, &sampling);
+                    &pli_table, consumer, &problem, &sampling);
 
             SearchDE(&input, &validator);
         }
@@ -114,7 +114,7 @@ unsigned long long FDHits::ExecuteInternal() {
 
         EdgeHashCollector<EdgeType> collector;
         for (size_t c = 0; c < pli_table.GetColumnCount(); ++c) {
-            sampling.SamplePLI(pli_table.GetColumnPli(c), &collector);
+            sampling.SamplePLI(pli_table.GetColumnPli(c), collector);
         }
 
         Hypergraph<EdgeType> input =
@@ -123,7 +123,7 @@ unsigned long long FDHits::ExecuteInternal() {
         VecEdgeCollector<EdgeType> results_collector;
 
         PLIValidator<EdgeType, VecEdgeCollector<EdgeType>, Sampler<Problem>, Problem> validator(
-                &pli_table, &results_collector, &problem, &sampling);
+                &pli_table, results_collector, &problem, &sampling);
 
         SearchMulti(&input, &validator);
 
