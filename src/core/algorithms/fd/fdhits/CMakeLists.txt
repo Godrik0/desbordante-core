@@ -8,7 +8,6 @@ target_sources(
             treesearch/dynamic_edgemark_store_multi.cpp
             treesearch/treesearch_de.cpp
             treesearch/treesearch_multi.cpp
-    PUBLIC FILE_SET HEADERS BASE_DIRS "${PROJECT_SOURCE_DIR}/src"
 )
 target_link_libraries(
     ${NAME}

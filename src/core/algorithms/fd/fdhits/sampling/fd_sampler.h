@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
+#include <limits>
 #include <optional>
 #include <random>
 #include <unordered_set>
@@ -11,6 +12,8 @@
 
 #include "core/algorithms/fd/fdhits/pli_table.h"
 #include "core/algorithms/fd/fdhits/types.h"
+#include "core/config/custom_random_seed/type.h"
+#include "core/util/custom_random.h"
 
 namespace algos::fd::fdhits {
 
@@ -18,24 +21,50 @@ template <typename P>
 class Sampler {
 private:
     P const* problem_;
-    PLITable const* table_;
     double sampling_factor_;
-    mutable std::mt19937 rng_;
+
+    class RandomGenerator {
+    private:
+        std::optional<CustomRandom> custom_;
+        std::mt19937 random_;
+
+    public:
+        using result_type = uint32_t;
+
+        explicit RandomGenerator(config::CustomRandomSeedType seed)
+            : random_(seed.has_value() ? 0 : std::random_device{}()) {
+            if (seed.has_value()) custom_.emplace(*seed);
+        }
+
+        static constexpr result_type min() {
+            return 0;
+        }
+
+        static constexpr result_type max() {
+            return std::numeric_limits<result_type>::max();
+        }
+
+        result_type operator()() {
+            return custom_ ? static_cast<result_type>(custom_->Next(32)) : random_();
+        }
+    };
+
+    mutable RandomGenerator rng_;
 
 public:
     using EdgeType = typename P::EdgeType;
 
-    Sampler(P const* problem, PLITable const* table, double sampling_factor)
+    Sampler(P const* problem, double sampling_factor, config::CustomRandomSeedType seed)
         : problem_(problem),
-          table_(table),
           sampling_factor_(sampling_factor),
-          rng_(std::random_device{}()) {}
+          rng_(seed) {}
 
     template <typename C>
     void SamplePLI(Pli const& pli, C& consumer) const {
         if (pli.empty()) return;
 
         std::vector<uint64_t> weights;
+        weights.reserve(pli.size());
         uint64_t total_pairs = 0;
         for (auto const& cluster : pli) {
             uint64_t pairs = GetPairCount(cluster);

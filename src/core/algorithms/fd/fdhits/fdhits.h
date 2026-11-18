@@ -6,6 +6,7 @@
 
 #include "core/algorithms/fd/hycommon/types.h"
 #include "core/algorithms/fd/pli_based_fd_algorithm.h"
+#include "core/config/custom_random_seed/type.h"
 #include "core/config/fdhits_mode/type.h"
 
 namespace algos::fd::fdhits {
@@ -18,6 +19,7 @@ private:
 
     double sampling_factor_ = 0.3;
     config::FDHitsModeType mode_ = "union";
+    config::CustomRandomSeedType custom_random_opt_;
 
     unsigned long long ExecuteInternal() override;
 

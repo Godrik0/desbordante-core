@@ -21,6 +21,7 @@
 #include "core/algorithms/fd/fdhits/validator/pli_validator.h"
 #include "core/algorithms/fd/hycommon/preprocessor.h"
 #include "core/algorithms/fd/hycommon/util/pli_util.h"
+#include "core/config/custom_random_seed/option.h"
 #include "core/config/fdhits_mode/option.h"
 #include "core/config/names.h"
 #include "core/util/logger.h"
@@ -29,10 +30,11 @@ namespace algos::fd::fdhits {
 
 FDHits::FDHits() : PliBasedFDAlgorithm({}) {
     RegisterOption(config::kFDHitsModeOpt(&mode_));
+    RegisterOption(config::kCustomRandomFlagOpt(&custom_random_opt_));
 }
 
 void FDHits::MakeExecuteOptsAvailableFDInternal() {
-    MakeOptionsAvailable({config::names::kFDHitsMode});
+    MakeOptionsAvailable({config::names::kFDHitsMode, config::kCustomRandomFlagOpt.GetName()});
 }
 
 void FDHits::RegisterFDs(std::vector<std::pair<std::vector<size_t>, size_t>> const& fds,
@@ -86,7 +88,7 @@ unsigned long long FDHits::ExecuteInternal() {
             using EdgeType = edges::DefaultEdge;
 
             Problem problem(target, &pli_table);
-            Sampler<Problem> sampling(&problem, &pli_table, sampling_factor_);
+            Sampler<Problem> sampling(&problem, sampling_factor_, custom_random_opt_);
 
             EdgeHashCollector<EdgeType> collector;
             for (size_t c = 0; c < pli_table.GetColumnCount(); ++c) {
@@ -108,9 +110,9 @@ unsigned long long FDHits::ExecuteInternal() {
     } else {
         using Problem = problems::MultiFDProblem;
         using EdgeType = Problem::EdgeType;
-        Problem problem(&pli_table, false);
+        Problem problem(&pli_table);
 
-        Sampler<Problem> sampling(&problem, &pli_table, sampling_factor_);
+        Sampler<Problem> sampling(&problem, sampling_factor_, custom_random_opt_);
 
         EdgeHashCollector<EdgeType> collector;
         for (size_t c = 0; c < pli_table.GetColumnCount(); ++c) {
@@ -127,7 +129,7 @@ unsigned long long FDHits::ExecuteInternal() {
 
         SearchMulti(&input, &validator);
 
-        for (auto const& fd : results_collector.results) {
+        for (auto const& fd : results_collector) {
             auto lhs_nodes = fd.GetLhs().GetNodes();
             auto rhs_nodes = fd.GetRhs().Nodes();
             for (size_t rhs : rhs_nodes) {
