@@ -43,7 +43,7 @@ bool DynamicEdgemarkStoreMulti::CanAddRhs(size_t vertex) const {
 
     for (size_t i = 0; i < current_crits.size(); ++i) {
         if (node_type::IsLHS(nodes_[i])) {
-            if (IsSubsetInverse(current_crits[i], vertex_hittings_[vertex])) {
+            if (current_crits[i].IsSubsetInverse(vertex_hittings_[vertex])) {
                 return false;
             }
         }
@@ -187,6 +187,7 @@ void DynamicEdgemarkStoreMulti::Extend(edges::MultiFD const& s,
     UpdateVertexHittings(previous_size);
 
     uncov_.Grow(graph_->GetEdgeCount());
+    current_vertex_hitting_.Grow(graph_->GetEdgeCount());
 
     for (auto& crits : critical_) {
         for (auto& crit : crits) {

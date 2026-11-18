@@ -1,8 +1,8 @@
 #pragma once
 
-#include <boost/dynamic_bitset.hpp>
+#include <cassert>
 
-#include "core/algorithms/fd/fdhits/treesearch/bit_util.h"
+#include <boost/dynamic_bitset.hpp>
 
 namespace algos::fd::fdhits {
 
@@ -52,19 +52,28 @@ public:
     }
 
     void SetTo(Edgemark const& other) {
-        bit_util::SetTo(bits_, other.bits_);
+        assert(Size() == other.Size());
+        bits_ = other.bits_;
     }
 
     void SetToNot(Edgemark const& other) {
-        bit_util::SetToNot(bits_, other.bits_);
+        assert(Size() == other.Size());
+        bits_ = other.bits_;
+        bits_.flip();
     }
 
     void IntersectWithInverse(Edgemark const& other) {
-        bit_util::IntersectWithInverse(bits_, other.bits_);
+        assert(Size() == other.Size());
+        bits_ -= other.bits_;
+    }
+
+    bool IsSubsetInverse(Edgemark const& other) const {
+        assert(Size() == other.Size());
+        return !bits_.intersects(other.bits_);
     }
 
     void CloneFrom(Edgemark const& other) {
-        bits_ = other.bits_;
+        SetTo(other);
     }
 
     class OnesIterator {
@@ -113,9 +122,6 @@ public:
         return *this;
     }
 
-    friend bool IsSubsetInverse(Edgemark const& one, Edgemark const& other) {
-        return bit_util::IsSubsetInverse(one.bits_, other.bits_);
-    }
 };
 
 }  // namespace algos::fd::fdhits
